@@ -134,6 +134,16 @@ combined: {
 - tebibytes
 - pebibytes
 
+### Time
+
+#### `github.com/tvandinther/units/time`
+
+- milliseconds
+- seconds
+- minutes
+- hours
+- days
+
 ### Angle
 
 #### `github.com/tvandinther/units/angle`
