@@ -1,26 +1,26 @@
 package mass
 
 milligrams: {
-    _milligrams: milligrams
-    milligrams: _milligrams
+	_milligrams: milligrams
+	milligrams:  _milligrams
 }
 
 grams: {
-    let factor = 1000
-    _milligrams: grams * factor
-    grams: _milligrams / factor
+	let factor = 1000
+	_milligrams: grams * factor
+	grams:       _milligrams / factor
 }
 
 kilograms: {
-    let factor = 1_000_000
-    _milligrams: kilograms * factor
-    kilograms: _milligrams / factor
+	let factor = 1_000_000
+	_milligrams: kilograms * factor
+	kilograms:   _milligrams / factor
 }
 
 tonnes: {
 	let factor = 1_000_000_000
-	_milligrams:  tonnes * factor
-	tonnes: _milligrams / factor
+	_milligrams: tonnes * factor
+	tonnes:      _milligrams / factor
 }
 
 // avoirdupois
@@ -39,24 +39,24 @@ pounds: {
 
 stone: {
 	let factor = 6_350_293.18
-    _milligrams: stone * factor
-    stone:       _milligrams / factor
+	_milligrams: stone * factor
+	stone:       _milligrams / factor
 }
 
 grains: {
 	let factor = 64.79891
-    _milligrams: grains * factor
-    grains:       _milligrams / factor
+	_milligrams: grains * factor
+	grains:      _milligrams / factor
 }
 
 shortTons: {
 	let factor = 907_184_740
-    _milligrams: shortTons * factor
-    shortTons: _milligrams / factor
+	_milligrams: shortTons * factor
+	shortTons:   _milligrams / factor
 }
 
 longTons: {
 	let factor = 1_016_046_908.8
-    _milligrams: longTons * factor
-    longTons: _milligrams / factor
+	_milligrams: longTons * factor
+	longTons:    _milligrams / factor
 }
