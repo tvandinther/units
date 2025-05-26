@@ -1,0 +1,96 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., v0.1.2). Must be new, valid semver (vX.Y.Z), and higher than previous in the same major series."
+        required: true
+        type: string
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Version Format
+        id: validate_format
+        run: |
+          set -eo pipefail
+          NEW_VERSION="${{ github.event.inputs.version }}"
+          echo "Proposed version for release: $NEW_VERSION"
+          if [[ ! "$NEW_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Version format must be vX.Y.Z (e.g., v0.1.0). Provided: $NEW_VERSION"
+            exit 1
+          fi
+          echo "Format check passed for $NEW_VERSION."
+          echo "version_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check Tag Existence
+        id: check_tag_existence
+        run: |
+          set -eo pipefail
+          VERSION_TO_CHECK="${{ steps.validate_format.outputs.version_tag }}"
+          echo "Checking existence for tag: $VERSION_TO_CHECK"
+
+          if git rev-parse --quiet --verify "refs/tags/$VERSION_TO_CHECK" >/dev/null; then
+            echo "Error: Version tag $VERSION_TO_CHECK already exists."
+            exit 1
+          fi
+          echo "Existence check passed: $VERSION_TO_CHECK does not yet exist as a tag."
+          echo "version_tag=$VERSION_TO_CHECK" >> $GITHUB_OUTPUT
+
+      - name: Validate Semantic Increment
+        id: validate_semantic_increment
+        run: |
+          set -eo pipefail
+          NEW_VERSION="${{ steps.check_tag_existence.outputs.version_tag }}"
+          echo "Validating semantic increment for: $NEW_VERSION"
+
+          NEW_MAJOR_PART=$(echo "$NEW_VERSION" | awk -F. '{print $1}') # e.g., v0 from v0.1.2
+
+          # Get all existing valid semver tags for the same major version, sorted
+          # Filters for tags like vMAJOR.MINOR.PATCH, excluding pre-releases or other formats
+          EXISTING_TAGS_IN_MAJOR=$(git tag --list "${NEW_MAJOR_PART}.*.*" | grep -E "^${NEW_MAJOR_PART}\.[0-9]+\.[0-9]+$" | sort -V)
+
+          if [ -n "$EXISTING_TAGS_IN_MAJOR" ]; then
+            LATEST_TAG_IN_MAJOR=$(echo "$EXISTING_TAGS_IN_MAJOR" | tail -n 1) # sort -V handles semantic version sorting
+            echo "Latest existing tag in major series $NEW_MAJOR_PART.*.* is $LATEST_TAG_IN_MAJOR."
+
+            # Compare NEW_VERSION with LATEST_TAG_IN_MAJOR using version sort
+            # If NEW_VERSION is not the highest, or is equal to LATEST_TAG_IN_MAJOR, it's an error.
+            HIGHEST_VERSION_CHECK=$(printf "%s\n%s" "$NEW_VERSION" "$LATEST_TAG_IN_MAJOR" | sort -V | tail -n 1)
+
+            if [[ "$HIGHEST_VERSION_CHECK" != "$NEW_VERSION" ]] || [[ "$NEW_VERSION" == "$LATEST_TAG_IN_MAJOR" ]]; then
+              echo "Error: New version $NEW_VERSION must be semantically higher than the latest tag $LATEST_TAG_IN_MAJOR within the same major series (${NEW_MAJOR_PART}.*.*)."
+              exit 1
+            fi
+            echo "Semantic increment check passed: $NEW_VERSION is higher than $LATEST_TAG_IN_MAJOR."
+          else
+            echo "No existing tags found in major series $NEW_MAJOR_PART.*.*. $NEW_VERSION will be the first in this major series."
+            # Note: This allows, for example, v1.0.0 if no v1.x.y tags exist.
+            # It also allows v1.0.1 as the first in v1 series, as the "semantically higher within major" condition is vacuously true.
+          fi
+
+          echo "All version validation steps passed for $NEW_VERSION."
+          echo "version_tag=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create and Push Git Tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG_NAME="${{ steps.validate_semantic_increment.outputs.version_tag }}"
+          echo "Creating and pushing Git tag: $TAG_NAME for commit $GITHUB_SHA"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag "$TAG_NAME" "$GITHUB_SHA"
+          git push origin "$TAG_NAME"

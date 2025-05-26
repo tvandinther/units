@@ -1,0 +1,39 @@
+name: Publish CUE Module
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # id-token: write # Uncomment if your CUE registry supports OIDC for authentication
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up CUE
+        uses: cue-lang/setup-cue@v1.0.1
+        with:
+          cue-version: "v0.13.0"
+
+      - name: Publish to CUE Registry
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "Publishing version $VERSION to CUE registry"
+          cue login --token ${{ secrets.CUE_REGISTRY_TOKEN }}
+          cue mod publish $VERSION
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "Creating GitHub release for tag $TAG_NAME"
+          gh release create "$TAG_NAME" \
+            --title "Release $TAG_NAME" \
+            --generate-notes # Automatically generates release notes from commits since the last release
