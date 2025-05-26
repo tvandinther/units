@@ -5,6 +5,7 @@ import (
 	"github.com/tvandinther/units/distance"
 	"github.com/tvandinther/units/angle"
 	"github.com/tvandinther/units/data"
+	"github.com/tvandinther/units/mass"
 )
 
 #Length: {
@@ -62,4 +63,17 @@ import (
 	data.gibibytes
 	data.tebibytes
 	data.pebibytes
+}
+
+#Mass: {
+	mass.milligrams
+	mass.grams
+	mass.kilograms
+	mass.ounces
+	mass.pounds
+	mass.stone
+	mass.grains
+	mass.tonnes
+	mass.shortTons
+	mass.longTons
 }

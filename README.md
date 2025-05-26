@@ -89,6 +89,21 @@ combined: {
 - **meters**
 - **yards**
 
+### Mass
+
+#### `github.com/tvandinther/units/mass`
+
+- milligrams
+- grams
+- kilograms
+- tonnes
+- ounces
+- pounds
+- stone
+- grains
+- shortTons
+- longTons
+
 ### Data
 
 #### `github.com/tvandinther/units/data`
@@ -126,3 +141,15 @@ combined: {
 - degrees
 - radians
 - gradians
+
+# Troubleshooting
+
+## Floating Point Inaccuracies
+
+CUE does not currently offer a precise number type so it can happen that certain structs fail to unify due to floating point inaccuracy. This will be clear when you receive an error such as the following:
+```
+mass._milligrams: conflicting values 999999999999999.9999999999999999998 and 1000000000000000.0:
+```
+This can be more likely to happen with unit domain structs containing many units. Culling the number of units in your domain struct can reduce the liklihood of this error occurring. If you are using a pre-existing domain struct, consider defining your own by embedding the desired units.
+
+All units are underpinned using a small metric base unit. If the floating point inaccuracy error continues to occur, consider reimplementing the required unit conversions using another base unit with cleaner factors.
