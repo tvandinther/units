@@ -6,6 +6,7 @@ import (
 	"github.com/tvandinther/units/angle"
 	"github.com/tvandinther/units/data"
 	"github.com/tvandinther/units/mass"
+	"github.com/tvandinther/units/time"
 )
 
 #Length: {
@@ -76,4 +77,12 @@ import (
 	mass.tonnes
 	mass.shortTons
 	mass.longTons
+}
+
+#Time: {
+	time.milliseconds
+	time.seconds
+	time.minutes
+	time.hours
+	time.days
 }
