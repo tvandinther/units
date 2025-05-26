@@ -20,5 +20,5 @@ jobs:
         with:
           cue-version: "v0.13.0"
 
-      - name: Run CUE evaluations
+      - name: Run CUE tests
         run: cue vet test.cue
